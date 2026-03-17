@@ -1,7 +1,7 @@
 # LT Shared UI Custom Components Spec
 
 ## Task Contract
-Task: Build a custom shared component system in `@work/shared-ui` and make it consumable by `crm-web` and `mothership-web`.
+Task: Build a custom shared component system in `@lt/shared-ui` and make it consumable by `crm-web` and `mothership-web`.
 Scope: Shared component APIs, styles, Storybook docs, theme provider, and migration-ready exports.
 Out of scope: Domain business logic, Supabase calls, route changes, database migrations, edge functions.
 Branch: `feature/shared-ui-wave1-20260316` (continue until split requested).
