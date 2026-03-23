@@ -3,6 +3,7 @@ import { Checkbox } from "./Checkbox";
 
 const meta: Meta<typeof Checkbox> = {
   title: "Core/Checkbox",
+  tags: ["autodocs"],
   component: Checkbox,
   args: {
     label: "Send weekly digest",

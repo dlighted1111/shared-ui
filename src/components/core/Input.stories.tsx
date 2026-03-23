@@ -3,6 +3,7 @@ import { Input } from "./Input";
 
 const meta: Meta<typeof Input> = {
   title: "Core/Input",
+  tags: ["autodocs"],
   component: Input,
   args: {
     label: "Email",

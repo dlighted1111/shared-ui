@@ -3,6 +3,7 @@ import { ThemeProvider } from "./ThemeProvider";
 
 const meta: Meta<typeof ThemeProvider> = {
   title: "Foundation/ThemeProvider",
+  tags: ["autodocs"],
   component: ThemeProvider,
   parameters: {
     layout: "fullscreen",

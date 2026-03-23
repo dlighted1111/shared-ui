@@ -3,6 +3,7 @@ import { Link } from "./Link";
 
 const meta: Meta<typeof Link> = {
   title: "Core/Link",
+  tags: ["autodocs"],
   component: Link,
   args: {
     href: "#",

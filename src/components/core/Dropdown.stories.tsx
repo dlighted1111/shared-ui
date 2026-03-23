@@ -10,6 +10,7 @@ const defaultItems = [
 
 const meta: Meta<typeof Dropdown> = {
   title: "Core/Dropdown",
+  tags: ["autodocs"],
   component: Dropdown,
   args: {
     triggerLabel: "Actions",

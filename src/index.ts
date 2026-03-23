@@ -1,11 +1,18 @@
 export { QuickFilterBar, type QuickFilterItem, type QuickFilterBarProps } from "./components/QuickFilterBar";
+export { MultiQuickFilterBar, type MultiQuickFilterBarProps } from "./components/MultiQuickFilterBar";
 export { StatusPill, type StatusColor, type StatusPillProps } from "./components/StatusPill";
 export { EmptyState, type EmptyStateProps } from "./components/EmptyState";
 export { ConfirmDialog, type ConfirmDialogProps } from "./components/ConfirmDialog";
+export { ConfirmModal, type ConfirmModalProps } from "./components/ConfirmModal";
 export {
   ActivityTimelineEmptyState,
   type ActivityTimelineEmptyStateProps,
 } from "./components/ActivityTimelineEmptyState";
+export { ActivityTimeline, type ActivityTimelineProps } from "./components/ActivityTimeline";
+export {
+  ChangelogTimeline,
+  type ChangelogTimelineProps,
+} from "./components/ChangelogTimeline";
 export { FormActionButtons, type FormActionButtonsProps } from "./components/FormActionButtons";
 export { CopyLinkButton, type CopyLinkButtonProps } from "./components/CopyLinkButton";
 export { KpiCard, type KpiCardProps, type KpiCardTrend } from "./components/KpiCard";
@@ -20,6 +27,11 @@ export {
   type KeyboardShortcutSection,
   type KeyboardShortcutItem,
 } from "./components/KeyboardShortcutsModal";
+export {
+  CommandPalette,
+  type CommandPaletteProps,
+  type CommandPaletteItem,
+} from "./components/CommandPalette";
 export { ValueBadge, type ValueBadgeProps } from "./components/ValueBadge";
 export { PageSizeSelector, type PageSizeSelectorProps } from "./components/PageSizeSelector";
 export {
@@ -32,6 +44,12 @@ export { ColumnPicker, type ColumnDef, type ColumnPickerProps } from "./componen
 export { FilterPopover, type FilterPill, type FilterPopoverProps } from "./components/FilterPopover";
 export { DismissButton, type DismissButtonProps } from "./components/DismissButton";
 export {
+  StandardToolbar,
+  type StandardToolbarProps,
+  type ColumnOption as StandardToolbarColumnOption,
+  type Density as StandardToolbarDensity,
+} from "./components/StandardToolbar";
+export {
   FilterPillList,
   type FilterPillListItem,
   type FilterPillListProps,
@@ -41,6 +59,96 @@ export {
   type ClearActionButtonProps,
 } from "./components/ClearActionButton";
 export { SearchField, type SearchFieldProps } from "./components/SearchField";
+export { PageHeader, type PageHeaderProps } from "./components/PageHeader";
+export { CopyText, type CopyTextProps } from "./components/CopyText";
+export {
+  SummaryWidget,
+  type SummaryWidgetProps,
+  type MetricCardDef,
+  type PhaseChipDef,
+} from "./components/SummaryWidget";
+export { FieldLabel, type FieldLabelProps } from "./components/FieldLabel";
+export {
+  SlideOverPanel,
+  type SlideOverPanelProps,
+} from "./components/SlideOverPanel";
+export {
+  ProcessInfoPopover,
+  type ProcessInfoPopoverProps,
+} from "./components/ProcessInfoPopover";
+export {
+  DeleteConfirmDialog,
+  type DeleteConfirmDialogProps,
+} from "./components/DeleteConfirmDialog";
+export {
+  SavedSearches,
+  type SavedSearchesProps,
+  type SavedSearchRecord,
+  type SavedSearchCreateInput,
+} from "./components/SavedSearches";
+export {
+  KeyCodesEditor,
+  type KeyCodesEditorProps,
+  type KeyCodeRecord,
+  type KeyCodeTypeOption,
+} from "./components/KeyCodesEditor";
+export {
+  DataTable,
+  type DataTableProps,
+  type DataTableColumnDef,
+  type DataTableFilterDef,
+  type DataTableDensity,
+  type DataTableSortDirection,
+} from "./components/DataTable";
+export { ColorBadge, type ColorBadgeProps } from "./components/ColorBadge";
+export { DealStageBadge, type DealStageBadgeProps } from "./components/DealStageBadge";
+export { LeadSourceBadge, type LeadSourceBadgeProps } from "./components/LeadSourceBadge";
+export {
+  PropertyTypeBadge,
+  type PropertyTypeBadgeProps,
+} from "./components/PropertyTypeBadge";
+export {
+  ActionLinkButton,
+  type ActionLinkButtonProps,
+} from "./components/ActionLinkButton";
+export { EntityLink, type EntityLinkProps } from "./components/EntityLink";
+export { DensityToggle, type DensityToggleProps } from "./components/DensityToggle";
+export {
+  ShortcutsModal,
+  type ShortcutsModalProps,
+} from "./components/ShortcutsModal";
+export {
+  LinkLookupForm,
+  type LinkLookupFormProps,
+  type LinkLookupOption,
+  type LinkLookupRoleOption,
+} from "./components/LinkLookupForm";
+export {
+  LinkAssetButton,
+  type LinkAssetFormProps,
+} from "./components/LinkAssetForm";
+export {
+  LinkContactButton,
+  type LinkContactFormProps,
+} from "./components/LinkContactForm";
+export {
+  GlobalPanels,
+  type GlobalPanelsProps,
+  type GlobalPanelEntry,
+  type GlobalPanelRenderer,
+  type GlobalPanelRendererProps,
+} from "./components/GlobalPanels";
+export {
+  BugReportModal,
+  type BugReportModalProps,
+} from "./components/BugReportModal";
+export {
+  LogActivityButton,
+  type LogActivityFormProps,
+  type LogActivitySavePayload,
+  type LogActivityTypeOption,
+  type LogActivityOwnerOption,
+} from "./components/LogActivityForm";
 export {
   escapeCsvValue,
   buildDatedCsvFilename,

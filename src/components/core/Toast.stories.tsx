@@ -4,6 +4,7 @@ import { ToastProvider, useToast } from "./Toast";
 
 const meta: Meta = {
   title: "Core/Toast",
+  tags: ["autodocs"],
 };
 
 export default meta;

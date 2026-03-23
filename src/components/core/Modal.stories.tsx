@@ -5,6 +5,7 @@ import { Modal } from "./Modal";
 
 const meta: Meta<typeof Modal> = {
   title: "Core/Modal",
+  tags: ["autodocs"],
   component: Modal,
   args: {
     title: "Confirm action",

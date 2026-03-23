@@ -9,6 +9,7 @@ const options = [
 
 const meta: Meta<typeof SelectMenu> = {
   title: "Core/SelectMenu",
+  tags: ["autodocs"],
   component: SelectMenu,
   args: {
     label: "Status",

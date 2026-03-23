@@ -39,6 +39,19 @@ export interface ToggleGroupItemProps extends Omit<ButtonHTMLAttributes<HTMLButt
   value: string;
 }
 
+function sizeClass(size: NonNullable<ToggleGroupContextValue["size"]>) {
+  if (size === "sm") return "h-9 px-2.5";
+  if (size === "lg") return "h-11 px-5";
+  return "h-10 px-3";
+}
+
+function variantClass(variant: NonNullable<ToggleGroupContextValue["variant"]>) {
+  if (variant === "outline") {
+    return "border border-input bg-transparent hover:bg-accent hover:text-accent-foreground";
+  }
+  return "bg-transparent";
+}
+
 function getDefaultValue(type: ToggleGroupType, defaultValue?: ToggleGroupValue): ToggleGroupValue {
   if (defaultValue !== undefined) {
     return defaultValue;
@@ -118,15 +131,6 @@ export const ToggleGroupItem = forwardRef<HTMLButtonElement, ToggleGroupItemProp
     : false;
   const isDisabled = Boolean(context?.disabled || disabled);
 
-  const sizeStyles =
-    context?.size === "sm"
-      ? { height: 36, padding: "0 10px", fontSize: "var(--lt-font-size-sm)" }
-      : context?.size === "lg"
-        ? { height: 44, padding: "0 20px", fontSize: "var(--lt-font-size-md)" }
-        : { height: 40, padding: "0 12px", fontSize: "var(--lt-font-size-sm)" };
-
-  const baseBorder = context?.variant === "outline" ? "1px solid var(--lt-color-border)" : "1px solid transparent";
-
   return (
     <button
       {...props}
@@ -134,22 +138,13 @@ export const ToggleGroupItem = forwardRef<HTMLButtonElement, ToggleGroupItemProp
       type="button"
       data-state={checked ? "on" : "off"}
       disabled={isDisabled}
-      className={cx(className)}
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 6,
-        borderRadius: "var(--lt-radius-sm)",
-        border: baseBorder,
-        background: checked ? "var(--lt-color-surface)" : "transparent",
-        color: "var(--lt-color-text)",
-        opacity: isDisabled ? 0.5 : 1,
-        cursor: isDisabled ? "not-allowed" : "pointer",
-        transition: "background-color 120ms ease, color 120ms ease, border-color 120ms ease",
-        ...sizeStyles,
-        ...style,
-      }}
+      className={cx(
+        "inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors hover:bg-muted hover:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=on]:bg-accent data-[state=on]:text-accent-foreground",
+        variantClass(context?.variant ?? "default"),
+        sizeClass(context?.size ?? "default"),
+        className,
+      )}
+      style={style}
       onClick={(event) => {
         onClick?.(event);
         if (event.defaultPrevented || isDisabled || !context) {
