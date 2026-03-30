@@ -4,6 +4,27 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 const meta: Meta = {
   title: "Core/Select",
   tags: ["autodocs"],
+  parameters: {
+    docs: {
+      description: {
+        component: `
+**Owner:** Shared
+
+**What problem does it solve?**  
+Provides a consistent, accessible dropdown selector across apps.
+
+**When & how to use it?**  
+Use for compact single-value choices in filters and forms. Keep option labels short and deterministic.
+
+**Current usage**  
+Used in mothership and crm filters (pod selectors, status selectors, table controls).
+
+**Related components**  
+Label, Input, StandardToolbar
+        `,
+      },
+    },
+  },
 };
 
 export default meta;

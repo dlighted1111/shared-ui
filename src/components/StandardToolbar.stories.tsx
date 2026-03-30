@@ -6,6 +6,27 @@ const meta: Meta<typeof StandardToolbar> = {
   title: "Components/StandardToolbar",
   tags: ["autodocs"],
   component: StandardToolbar,
+  parameters: {
+    docs: {
+      description: {
+        component: `
+**Owner:** Shared
+
+**What problem does it solve?**  
+Centralizes common list controls (search, pod filter, attention toggle, density, export, columns) into one consistent toolbar.
+
+**When & how to use it?**  
+Use above DataTable-based list pages where the same control contract is needed across modules.
+
+**Current usage**  
+Used in operational list flows that need filter/search parity and reduced duplication.
+
+**Related components**  
+DataTable, ColumnPicker, DensityToggle, SearchField
+        `,
+      },
+    },
+  },
 };
 
 export default meta;

@@ -3,6 +3,17 @@ import React from 'react';
 import { ThemeProvider, type ThemeMode } from '../src/theme';
 
 const preview: Preview = {
+  parameters: {
+    controls: {
+      expanded: true,
+      disable: false,
+      sort: "alpha",
+      matchers: {
+        color: /(background|color)$/i,
+        date: /Date$/i,
+      },
+    },
+  },
   globalTypes: {
     theme: {
       name: 'Theme',

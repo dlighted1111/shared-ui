@@ -21,6 +21,27 @@ const meta: Meta<typeof EmptyState> = {
   title: "Components/EmptyState",
   tags: ["autodocs"],
   component: EmptyState,
+  parameters: {
+    docs: {
+      description: {
+        component: `
+**Owner:** Shared
+
+**What problem does it solve?**  
+Provides a consistent empty-data and no-results presentation with optional action.
+
+**When & how to use it?**  
+Use when a list or panel has no renderable content after loading or filtering.
+
+**Current usage**  
+Used across mothership and crm list pages, drawers, and table fallbacks.
+
+**Related components**  
+DataTable, TableEmptyState, Button
+        `,
+      },
+    },
+  },
 };
 
 export default meta;

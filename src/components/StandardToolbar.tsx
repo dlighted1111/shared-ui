@@ -352,11 +352,11 @@ export function StandardToolbar({
   const handleSearchKeyDown = useCallback(
     (event: KeyboardEvent<HTMLInputElement>) => {
       if (event.key !== "Enter") return;
-      const query = searchTerm.trim();
+      const query = event.currentTarget.value.trim();
       if (!query) return;
       onSearchEnter?.(query);
     },
-    [onSearchEnter, searchTerm]
+    [onSearchEnter]
   );
 
   const handleClearSearch = useCallback(() => {
@@ -394,6 +394,7 @@ export function StandardToolbar({
         <SearchField
           value={searchTerm}
           onValueChange={onSearchChange}
+          debounceMs={500}
           onClear={handleClearSearch}
           onKeyDown={handleSearchKeyDown}
           placeholder={searchPlaceholder}

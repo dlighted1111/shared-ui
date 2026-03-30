@@ -1,6 +1,7 @@
 import {
   createContext,
   forwardRef,
+  useCallback,
   useContext,
   useEffect,
   useId,
@@ -50,22 +51,30 @@ export const Command = forwardRef<HTMLDivElement, CommandProps>(function Command
   const [query, setQuery] = useState("");
   const [items, setItems] = useState<CommandItemRecord[]>([]);
 
+  const registerItem = useCallback((item: CommandItemRecord) => {
+    setItems((prev) => {
+      const existing = prev.find((entry) => entry.id === item.id);
+      if (existing && existing.value === item.value) {
+        return prev;
+      }
+      const withoutItem = prev.filter((entry) => entry.id !== item.id);
+      return [...withoutItem, item];
+    });
+  }, []);
+
+  const unregisterItem = useCallback((id: string) => {
+    setItems((prev) => prev.filter((entry) => entry.id !== id));
+  }, []);
+
   const contextValue = useMemo<CommandContextValue>(
     () => ({
       query,
       setQuery,
       items,
-      registerItem: (item) => {
-        setItems((prev) => {
-          const withoutItem = prev.filter((entry) => entry.id !== item.id);
-          return [...withoutItem, item];
-        });
-      },
-      unregisterItem: (id) => {
-        setItems((prev) => prev.filter((entry) => entry.id !== id));
-      },
+      registerItem,
+      unregisterItem,
     }),
-    [items, query],
+    [items, query, registerItem, unregisterItem],
   );
 
   return (

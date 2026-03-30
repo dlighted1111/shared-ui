@@ -5,6 +5,27 @@ const meta: Meta<typeof Checkbox> = {
   title: "Core/Checkbox",
   tags: ["autodocs"],
   component: Checkbox,
+  parameters: {
+    docs: {
+      description: {
+        component: `
+**Owner:** Shared
+
+**What problem does it solve?**  
+Provides a standard boolean input with description and validation support.
+
+**When & how to use it?**  
+Use for opt-in settings, bulk table selection, and checklist interactions where users can explicitly toggle a state.
+
+**Current usage**  
+Used in mothership and crm settings, filters, and operational table actions.
+
+**Related components**  
+Switch, RadioGroup, DataTable
+        `,
+      },
+    },
+  },
   args: {
     label: "Send weekly digest",
   },

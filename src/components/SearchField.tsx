@@ -1,10 +1,21 @@
-import { forwardRef, type InputHTMLAttributes, type ReactNode } from "react";
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type FocusEvent,
+  type InputHTMLAttributes,
+  type KeyboardEvent,
+  type ReactNode,
+} from "react";
 import { DismissButton } from "./DismissButton";
 
 export interface SearchFieldProps
   extends Omit<InputHTMLAttributes<HTMLInputElement>, "value" | "onChange"> {
   value: string;
   onValueChange: (value: string) => void;
+  debounceMs?: number;
   onClear?: () => void;
   clearable?: boolean;
   showClearWhenEmpty?: boolean;
@@ -25,6 +36,7 @@ const DEFAULT_LEADING_CLASS =
 const DEFAULT_CLEAR_BUTTON_CLASS =
   "absolute right-3 top-1/2 -translate-y-1/2";
 const DEFAULT_CLEAR_GLYPH_CLASS = "text-[14px] leading-none";
+const DEFAULT_DEBOUNCE_MS = 0;
 
 function mergeClassNames(...parts: Array<string | undefined>) {
   return parts.filter(Boolean).join(" ");
@@ -35,6 +47,7 @@ export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(
     {
       value,
       onValueChange,
+      debounceMs = DEFAULT_DEBOUNCE_MS,
       onClear,
       clearable = true,
       showClearWhenEmpty = false,
@@ -46,12 +59,47 @@ export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(
       clearButtonClassName,
       clearGlyphClassName,
       type,
+      onBlur,
+      onKeyDown,
       ...inputProps
     },
     ref
   ) {
+    const resolvedDebounceMs =
+      Number.isFinite(debounceMs) && debounceMs > 0
+        ? Math.round(debounceMs)
+        : 0;
+    const [inputValue, setInputValue] = useState(value);
+    const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    const clearScheduledUpdate = useCallback(() => {
+      if (debounceTimerRef.current == null) return;
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+    }, []);
+
+    const flushValue = useCallback(
+      (nextValue: string) => {
+        clearScheduledUpdate();
+        onValueChange(nextValue);
+      },
+      [clearScheduledUpdate, onValueChange]
+    );
+
+    useEffect(() => {
+      setInputValue(value);
+      clearScheduledUpdate();
+    }, [clearScheduledUpdate, value]);
+
+    useEffect(
+      () => () => {
+        clearScheduledUpdate();
+      },
+      [clearScheduledUpdate]
+    );
+
     const showClearButton =
-      clearable && (showClearWhenEmpty || value.length > 0);
+      clearable && (showClearWhenEmpty || inputValue.length > 0);
     const hasClearSlot = clearable;
 
     const resolvedContainerClass = mergeClassNames(
@@ -78,11 +126,42 @@ export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(
     );
 
     const handleClear = () => {
+      setInputValue("");
+      clearScheduledUpdate();
       if (onClear) {
         onClear();
         return;
       }
       onValueChange("");
+    };
+
+    const handleChange = (nextValue: string) => {
+      if (resolvedDebounceMs <= 0) {
+        setInputValue(nextValue);
+        flushValue(nextValue);
+        return;
+      }
+
+      setInputValue(nextValue);
+      clearScheduledUpdate();
+      debounceTimerRef.current = setTimeout(() => {
+        debounceTimerRef.current = null;
+        onValueChange(nextValue);
+      }, resolvedDebounceMs);
+    };
+
+    const handleBlur = (event: FocusEvent<HTMLInputElement>) => {
+      if (resolvedDebounceMs > 0 && debounceTimerRef.current != null) {
+        flushValue(inputValue);
+      }
+      onBlur?.(event);
+    };
+
+    const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+      if (resolvedDebounceMs > 0 && event.key === "Enter" && debounceTimerRef.current != null) {
+        flushValue(inputValue);
+      }
+      onKeyDown?.(event);
     };
 
     return (
@@ -96,8 +175,10 @@ export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(
           {...inputProps}
           ref={ref}
           type={type ?? "text"}
-          value={value}
-          onChange={(event) => onValueChange(event.target.value)}
+          value={inputValue}
+          onChange={(event) => handleChange(event.target.value)}
+          onBlur={handleBlur}
+          onKeyDown={handleKeyDown}
           className={resolvedInputClass}
         />
         {showClearButton && (
