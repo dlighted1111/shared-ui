@@ -85,6 +85,23 @@ export {
   type ColumnPickerProps,
 } from './components/ColumnPicker';
 export {
+  ColumnVisibilityPicker,
+  type ColumnVisibilityOption,
+  type ColumnVisibilityPickerProps,
+} from './components/ColumnVisibilityPicker';
+export {
+  ColumnOrderPicker,
+  type ColumnOrderPickerProps,
+} from './components/ColumnOrderPicker';
+export {
+  ColumnViewsControls,
+  type ColumnViewsControlsProps,
+  type SavedColumnViewRow,
+  type SaveViewStatus,
+  type RenameViewStatus,
+  type DeleteViewStatus,
+} from './components/ColumnViewsControls';
+export {
   FilterPopover,
   type FilterPill,
   type FilterPopoverProps,
