@@ -94,6 +94,11 @@ export {
   type ColumnOrderPickerProps,
 } from './components/ColumnOrderPicker';
 export {
+  OptionListDropdown,
+  type OptionListDropdownProps,
+  type OptionListDropdownOption,
+} from './components/OptionListDropdown';
+export {
   ColumnViewsControls,
   type ColumnViewsControlsProps,
   type SavedColumnViewRow,

@@ -1,6 +1,8 @@
 import {
   useCallback,
+  useEffect,
   useMemo,
+  useRef,
   useState,
   type CSSProperties,
   type ReactNode,
@@ -15,6 +17,10 @@ import {
   type DragEndEvent,
   type DragStartEvent,
 } from "@dnd-kit/core";
+import {
+  restrictToFirstScrollableAncestor,
+  restrictToVerticalAxis,
+} from "@dnd-kit/modifiers";
 import {
   arrayMove,
   SortableContext,
@@ -134,7 +140,7 @@ function SortableColumnRow({
   });
 
   const style: CSSProperties = {
-    transform: CSS.Transform.toString(transform),
+    transform: CSS.Transform.toString(transform ? { ...transform, x: 0 } : null),
     transition,
   };
 
@@ -145,6 +151,10 @@ function SortableColumnRow({
       className={`flex items-center gap-2 rounded-md px-2 py-1.5 text-[13px] ${
         isDragging ? "bg-muted ring-1 ring-border" : "hover:bg-muted/60"
       }`}
+      onClick={() => {
+        if (toggleDisabled) return;
+        onToggle();
+      }}
     >
       <input
         type="checkbox"
@@ -154,7 +164,13 @@ function SortableColumnRow({
         onClick={(event) => event.stopPropagation()}
         className="h-3.5 w-3.5 rounded border-border accent-foreground"
       />
-      <span className="min-w-0 flex-1 truncate">{label}</span>
+      <span
+        className={`min-w-0 flex-1 truncate ${
+          toggleDisabled ? "cursor-not-allowed opacity-60" : "cursor-pointer"
+        }`}
+      >
+        {label}
+      </span>
       <button
         type="button"
         aria-label={`Reorder ${label}`}
@@ -199,6 +215,7 @@ export function ColumnOrderPicker({
   const [open, setOpen] = useState(false);
   const [draggingKey, setDraggingKey] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const selectAllRef = useRef<HTMLInputElement | null>(null);
   const normalizedSearch = searchTerm.trim().toLowerCase();
   const isSearchActive = normalizedSearch.length > 0;
   const isChromeVariant = triggerVariant === "chrome";
@@ -266,6 +283,45 @@ export function ColumnOrderPicker({
     },
     [keyIndexMap, onVisibleColumnsChange, visibleColumns, visibleKeySet]
   );
+  const toggleableKeys = useMemo(
+    () => orderedKeys.filter((key) => !disabledKeySet.has(key)),
+    [disabledKeySet, orderedKeys]
+  );
+  const allToggleableChecked =
+    toggleableKeys.length > 0 &&
+    toggleableKeys.every((key) => visibleKeySet.has(key));
+  const someToggleableChecked = toggleableKeys.some((key) =>
+    visibleKeySet.has(key)
+  );
+  useEffect(() => {
+    if (!selectAllRef.current) return;
+    selectAllRef.current.indeterminate =
+      !allToggleableChecked && someToggleableChecked;
+  }, [allToggleableChecked, someToggleableChecked]);
+  const handleToggleAll = useCallback(
+    (nextChecked: boolean) => {
+      if (nextChecked) {
+        onVisibleColumnsChange(orderedKeys);
+        return;
+      }
+
+      const lockedVisible = visibleColumns.filter((key) => disabledKeySet.has(key));
+      const fallbackVisible = [...lockedVisible];
+      for (const key of orderedKeys) {
+        if (fallbackVisible.length >= minVisibleColumns) break;
+        if (fallbackVisible.includes(key)) continue;
+        fallbackVisible.push(key);
+      }
+      onVisibleColumnsChange(fallbackVisible);
+    },
+    [
+      disabledKeySet,
+      minVisibleColumns,
+      onVisibleColumnsChange,
+      orderedKeys,
+      visibleColumns,
+    ]
+  );
 
   const sortableIds = useMemo(
     () => filteredColumns.map((column) => column.key),
@@ -313,8 +369,6 @@ export function ColumnOrderPicker({
     : undefined;
   const menuMaxHeight =
     "min(60vh, var(--radix-dropdown-menu-content-available-height))";
-  const listMaxHeight =
-    "max(0px, calc(min(60vh, var(--radix-dropdown-menu-content-available-height)) - 96px))";
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
@@ -346,7 +400,7 @@ export function ColumnOrderPicker({
       <DropdownMenuContent
         align="end"
         collisionPadding={8}
-        className="w-[260px] overflow-hidden p-0"
+        className="flex w-[260px] flex-col overflow-hidden p-0"
         style={{ maxHeight: menuMaxHeight }}
       >
         <div className="border-b border-border px-3 py-2">
@@ -358,17 +412,30 @@ export function ColumnOrderPicker({
           </div>
         </div>
         <div className="border-b border-border p-2">
-          <SearchField
-            value={searchTerm}
-            onValueChange={setSearchTerm}
-            debounceMs={0}
-            placeholder={searchPlaceholder}
-            leading={<SearchIcon className="h-3.5 w-3.5 text-muted-foreground" />}
-            containerClassName="w-full"
-            inputClassName="h-[34px] text-[13px]"
-          />
+          <div className="flex items-center gap-2">
+            <label className="inline-flex shrink-0 cursor-pointer items-center gap-1 text-[12px] text-foreground">
+              <input
+                ref={selectAllRef}
+                type="checkbox"
+                checked={allToggleableChecked}
+                disabled={toggleableKeys.length === 0}
+                onChange={(event) => handleToggleAll(event.target.checked)}
+                className="h-3.5 w-3.5 rounded border-border accent-foreground"
+              />
+              All
+            </label>
+            <SearchField
+              value={searchTerm}
+              onValueChange={setSearchTerm}
+              debounceMs={0}
+              placeholder={searchPlaceholder}
+              leading={<SearchIcon className="h-3.5 w-3.5 text-muted-foreground" />}
+              containerClassName="w-full"
+              inputClassName="h-[34px] text-[13px]"
+            />
+          </div>
         </div>
-        <div className="overflow-y-auto py-1" style={{ maxHeight: listMaxHeight }}>
+        <div className="min-h-0 flex-1 overflow-y-auto py-1">
           {filteredColumns.length === 0 ? (
             <div className="px-3 py-2 text-xs text-muted-foreground">
               No columns found.
@@ -377,6 +444,7 @@ export function ColumnOrderPicker({
             <DndContext
               sensors={sensors}
               collisionDetection={closestCenter}
+              modifiers={[restrictToVerticalAxis, restrictToFirstScrollableAncestor]}
               onDragStart={handleDragStart}
               onDragEnd={handleDragEnd}
               onDragCancel={() => setDraggingKey(null)}
