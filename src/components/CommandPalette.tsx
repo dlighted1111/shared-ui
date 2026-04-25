@@ -65,7 +65,7 @@ export function CommandPalette({
   const [records, setRecords] = useState<CommandPaletteItem[]>([]);
   const [selectedIdx, setSelectedIdx] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
-  const timerRef = useRef<ReturnType<typeof setTimeout>>();
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const requestRef = useRef(0);
 
   useEffect(() => {
