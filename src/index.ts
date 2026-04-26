@@ -4,6 +4,22 @@ export {
   type QuickFilterBarProps,
 } from './components/QuickFilterBar';
 export {
+  AppSidebarShell,
+} from "./components/AppSidebarShell";
+export type {
+  AppSidebarIconComponent,
+  AppSidebarIcon,
+  AppSidebarBadge,
+  AppSidebarItem,
+  AppSidebarSection,
+  AppSidebarAction,
+  AppSidebarUserMenuHelpers,
+  AppSidebarUser,
+  AppSidebarBrand,
+  AppSidebarRenderContext,
+  AppSidebarShellProps,
+} from "./components/AppSidebar.types";
+export {
   MultiQuickFilterBar,
   type MultiQuickFilterBarProps,
 } from './components/MultiQuickFilterBar';
