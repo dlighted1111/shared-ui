@@ -5,7 +5,8 @@
   "type": "module",
   "sideEffects": false,
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./sidebar": "./src/components/AppSidebarShell.tsx"
   },
   "scripts": {
     "build": "tsc --noEmit -p tsconfig.json",
@@ -15,7 +16,8 @@
     "build-storybook": "storybook build"
   },
   "peerDependencies": {
-    "react": "^18.3.1"
+    "react": "^18.3.1 || ^19.0.0",
+    "react-dom": "^18.3.1 || ^19.0.0"
   },
   "devDependencies": {
     "@storybook/addon-a11y": "^10.3.3",
