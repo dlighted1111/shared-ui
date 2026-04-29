@@ -253,12 +253,12 @@ export function ColumnViewsControls({
   );
 
   const activeViewLabel = useMemo(() => {
-    if (savedViews.length === 0) return "New View";
+    if (savedViews.length === 0) return "Default View";
     const activeView = activeViewId
       ? savedViews.find((viewRow) => viewRow.id === activeViewId)
       : null;
     const name = String(activeView?.name ?? "").trim();
-    return name || "New View";
+    return name || "Default View";
   }, [activeViewId, savedViews]);
 
   const submitSaveView = useCallback(async () => {
@@ -440,7 +440,7 @@ export function ColumnViewsControls({
               type="button"
             >
               <IconSave className={isChromeVariant ? undefined : "h-3.5 w-3.5"} size={14} />
-              Save View
+              Create View
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-[260px] p-3">
@@ -702,15 +702,13 @@ export function ColumnViewsControls({
               {viewActionError}
             </div>
           ) : null}
-          {savedViews.length > 0 ? (
-            <DropdownMenuItem
-              onSelect={onResetToOriginalView}
-              className="py-2 text-[13px]"
-              disabled={isViewsLoading}
-            >
-              Create New View
-            </DropdownMenuItem>
-          ) : null}
+          <DropdownMenuItem
+            onSelect={onResetToOriginalView}
+            className="py-2 text-[13px]"
+            disabled={isViewsLoading || savedViewsUnavailable}
+          >
+            Default View
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
