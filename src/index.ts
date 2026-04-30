@@ -46,6 +46,10 @@ export {
   type ActivityTimelineProps,
 } from './components/ActivityTimeline';
 export {
+  ActivityLogSection,
+  type ActivityLogSectionProps,
+} from './components/ActivityLogSection';
+export {
   ChangelogTimeline,
   type ChangelogTimelineProps,
 } from './components/ChangelogTimeline';
