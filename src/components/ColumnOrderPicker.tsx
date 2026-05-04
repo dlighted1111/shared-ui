@@ -107,6 +107,7 @@ export interface ColumnOrderPickerProps {
   columns: readonly ColumnVisibilityOption[];
   visibleColumns: string[];
   onVisibleColumnsChange: (nextColumns: string[]) => void;
+  onOpenChange?: (open: boolean) => void;
   minVisibleColumns?: number;
   disabledKeys?: readonly string[];
   searchPlaceholder?: string;
@@ -205,6 +206,7 @@ export function ColumnOrderPicker({
   columns,
   visibleColumns,
   onVisibleColumnsChange,
+  onOpenChange,
   minVisibleColumns = 2,
   disabledKeys,
   searchPlaceholder = "Search",
@@ -369,9 +371,16 @@ export function ColumnOrderPicker({
     : undefined;
   const menuMaxHeight =
     "min(60vh, var(--radix-dropdown-menu-content-available-height))";
+  const handleOpenChange = useCallback(
+    (nextOpen: boolean) => {
+      setOpen(nextOpen);
+      onOpenChange?.(nextOpen);
+    },
+    [onOpenChange]
+  );
 
   return (
-    <DropdownMenu open={open} onOpenChange={setOpen}>
+    <DropdownMenu open={open} onOpenChange={handleOpenChange}>
       <TooltipProvider delayDuration={200}>
         <Tooltip>
           <TooltipTrigger asChild>
