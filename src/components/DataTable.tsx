@@ -5,6 +5,7 @@ import {
   useMemo,
   useState,
   type CSSProperties,
+  type MouseEvent,
   type ReactNode,
 } from 'react';
 import { cx } from '../lib/cx';
@@ -53,7 +54,7 @@ export interface DataTableProps<T extends Record<string, unknown>> {
   data: T[];
   filters?: DataTableFilterDef[];
   onRemoveFilter?: (key: string) => void;
-  onRowClick?: (row: T) => void;
+  onRowClick?: (row: T, event: MouseEvent<HTMLElement>) => void;
   rowClassName?: (row: T) => string;
   loading?: boolean;
   emptyMessage?: string;
@@ -131,12 +132,86 @@ const DEFAULT_CELL_MAX_WIDTH = 320;
 const DEFAULT_PAGE_SIZE = 25;
 const LARGE_DATASET_PAGE_THRESHOLD = 1000;
 const LARGE_DATASET_DEFAULT_PAGE_SIZE = 500;
+const MIDDLE_CLICK_SUPPRESSION_WINDOW_MS = 400;
+const ROW_MOUSE_DEBUG_KEY = 'lt:debug-row-mouse';
 const SELECTION_CHECKBOX_STYLE: CSSProperties = {
   accentColor: 'var(--lt-color-primary)',
   width: 16,
   height: 16,
   margin: 0,
 };
+const recentMiddleClickByElement = new WeakMap<HTMLElement, number>();
+
+function isMiddleMouseIntent(event: MouseEvent<HTMLElement>): boolean {
+  const nativeEvent = event.nativeEvent as globalThis.MouseEvent | undefined;
+  const reactButtons = typeof event.buttons === 'number' ? event.buttons : 0;
+  const nativeButtons =
+    typeof nativeEvent?.buttons === 'number' ? nativeEvent.buttons : 0;
+
+  return (
+    event.button === 1 ||
+    (reactButtons & 4) === 4 ||
+    nativeEvent?.button === 1 ||
+    (nativeButtons & 4) === 4 ||
+    nativeEvent?.which === 2
+  );
+}
+
+function hasRecentMiddleClick(element: HTMLElement): boolean {
+  const lastHandledAt = recentMiddleClickByElement.get(element);
+  return (
+    typeof lastHandledAt === 'number' &&
+    Date.now() - lastHandledAt < MIDDLE_CLICK_SUPPRESSION_WINDOW_MS
+  );
+}
+
+function markRecentMiddleClick(element: HTMLElement): void {
+  recentMiddleClickByElement.set(element, Date.now());
+}
+
+function isRowMouseDebugEnabled(): boolean {
+  if (typeof window === 'undefined') return false;
+  const debugFlag = (window as Window & { __LT_ROW_MOUSE_DEBUG__?: unknown })
+    .__LT_ROW_MOUSE_DEBUG__;
+  if (debugFlag === true) return true;
+
+  try {
+    return window.localStorage.getItem(ROW_MOUSE_DEBUG_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function logRowMouseEvent(
+  zone: 'table' | 'cards',
+  phase: 'click' | 'mousedown' | 'auxclick',
+  rowKey: DataTableRowKey,
+  event: MouseEvent<HTMLElement>,
+): void {
+  if (!isRowMouseDebugEnabled()) return;
+
+  const nativeEvent = event.nativeEvent as globalThis.MouseEvent | undefined;
+  const payload = {
+    rowKey,
+    type: event.type,
+    phase,
+    zone,
+    button: event.button,
+    buttons: event.buttons,
+    nativeButton: nativeEvent?.button,
+    nativeButtons: nativeEvent?.buttons,
+    nativeWhich: nativeEvent?.which,
+    ctrlKey: event.ctrlKey,
+    metaKey: event.metaKey,
+    shiftKey: event.shiftKey,
+    altKey: event.altKey,
+    defaultPrevented: event.defaultPrevented,
+    targetTag: (event.target as HTMLElement | null)?.tagName ?? null,
+    currentTargetTag: event.currentTarget.tagName,
+  };
+
+  console.debug('[DataTable][RowMouse]', payload);
+}
 
 function inferColumnMinWidth(
   column: DataTableColumnDef<Record<string, unknown>>,
@@ -1040,7 +1115,30 @@ export function DataTable<T extends Record<string, unknown>>({
                   rowClassName?.(row),
                 )}
                 style={rowAccentStyle(row)}
-                onClick={() => onRowClick?.(row)}
+                onClick={(event) => {
+                  logRowMouseEvent('cards', 'click', rowKey, event);
+                  if (hasRecentMiddleClick(event.currentTarget)) {
+                    event.preventDefault();
+                    return;
+                  }
+                  onRowClick?.(row, event);
+                }}
+                onMouseDown={(event) => {
+                  logRowMouseEvent('cards', 'mousedown', rowKey, event);
+                  if (event.defaultPrevented || !isMiddleMouseIntent(event)) return;
+                  if (hasRecentMiddleClick(event.currentTarget)) return;
+                  markRecentMiddleClick(event.currentTarget);
+                  event.preventDefault();
+                  onRowClick?.(row, event);
+                }}
+                onAuxClick={(event) => {
+                  logRowMouseEvent('cards', 'auxclick', rowKey, event);
+                  if (event.defaultPrevented || !isMiddleMouseIntent(event)) return;
+                  if (hasRecentMiddleClick(event.currentTarget)) return;
+                  markRecentMiddleClick(event.currentTarget);
+                  event.preventDefault();
+                  onRowClick?.(row, event);
+                }}
               >
                 {enableRowSelection || renderExpandedRow ? (
                   <div className="mb-2 flex items-center justify-end gap-2">
@@ -1245,7 +1343,32 @@ export function DataTable<T extends Record<string, unknown>>({
                         onRowClick && 'cursor-pointer',
                         rowClassName?.(row),
                       )}
-                      onClick={() => onRowClick?.(row)}
+                      onClick={(event) => {
+                        logRowMouseEvent('table', 'click', rowKey, event);
+                        if (hasRecentMiddleClick(event.currentTarget)) {
+                          event.preventDefault();
+                          return;
+                        }
+                        onRowClick?.(row, event);
+                      }}
+                      onMouseDown={(event) => {
+                        logRowMouseEvent('table', 'mousedown', rowKey, event);
+                        if (event.defaultPrevented || !isMiddleMouseIntent(event))
+                          return;
+                        if (hasRecentMiddleClick(event.currentTarget)) return;
+                        markRecentMiddleClick(event.currentTarget);
+                        event.preventDefault();
+                        onRowClick?.(row, event);
+                      }}
+                      onAuxClick={(event) => {
+                        logRowMouseEvent('table', 'auxclick', rowKey, event);
+                        if (event.defaultPrevented || !isMiddleMouseIntent(event))
+                          return;
+                        if (hasRecentMiddleClick(event.currentTarget)) return;
+                        markRecentMiddleClick(event.currentTarget);
+                        event.preventDefault();
+                        onRowClick?.(row, event);
+                      }}
                     >
                       {useSelectionColumn ? (
                         <td
