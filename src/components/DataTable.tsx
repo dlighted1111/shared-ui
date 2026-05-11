@@ -55,6 +55,7 @@ export interface DataTableProps<T extends Record<string, unknown>> {
   filters?: DataTableFilterDef[];
   onRemoveFilter?: (key: string) => void;
   onRowClick?: (row: T, event: MouseEvent<HTMLElement>) => void;
+  getRowHref?: (row: T) => string | undefined;
   rowClassName?: (row: T) => string;
   loading?: boolean;
   emptyMessage?: string;
@@ -323,6 +324,16 @@ function compareDataTableValues(
   });
 }
 
+function isModifiedPointerClick(event: MouseEvent<HTMLElement>): boolean {
+  return Boolean(
+    event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey ||
+      event.button === 1,
+  );
+}
+
 function SortUpIcon() {
   return (
     <svg
@@ -445,6 +456,7 @@ export function DataTable<T extends Record<string, unknown>>({
   filters,
   onRemoveFilter,
   onRowClick,
+  getRowHref,
   rowClassName,
   loading = false,
   emptyMessage = 'No data found.',
@@ -882,6 +894,18 @@ export function DataTable<T extends Record<string, unknown>>({
     [],
   );
 
+  const handleRowInteraction = useCallback(
+    (row: T, event: MouseEvent<HTMLElement>) => {
+      const href = getRowHref?.(row);
+      if (href && isModifiedPointerClick(event)) return;
+      if (href && onRowClick) {
+        event.preventDefault();
+      }
+      onRowClick?.(row, event);
+    },
+    [getRowHref, onRowClick],
+  );
+
   const resolveRowAccent = useCallback(
     (row: T): string | null => {
       const accent = rowAccentColor?.(row);
@@ -1105,41 +1129,15 @@ export function DataTable<T extends Record<string, unknown>>({
           {pagedRows.map(({ row, rowKey }) => {
             const rowSelectable = isRowSelectable ? isRowSelectable(row) : true;
             const expanded = expandedRowKeys.has(rowKey);
-
-            return (
-              <div
-                key={rowKey}
-                className={cx(
-                  'rounded-md border border-border bg-background p-3',
-                  onRowClick && 'cursor-pointer hover:bg-muted/30',
-                  rowClassName?.(row),
-                )}
-                style={rowAccentStyle(row)}
-                onClick={(event) => {
-                  logRowMouseEvent('cards', 'click', rowKey, event);
-                  if (hasRecentMiddleClick(event.currentTarget)) {
-                    event.preventDefault();
-                    return;
-                  }
-                  onRowClick?.(row, event);
-                }}
-                onMouseDown={(event) => {
-                  logRowMouseEvent('cards', 'mousedown', rowKey, event);
-                  if (event.defaultPrevented || !isMiddleMouseIntent(event)) return;
-                  if (hasRecentMiddleClick(event.currentTarget)) return;
-                  markRecentMiddleClick(event.currentTarget);
-                  event.preventDefault();
-                  onRowClick?.(row, event);
-                }}
-                onAuxClick={(event) => {
-                  logRowMouseEvent('cards', 'auxclick', rowKey, event);
-                  if (event.defaultPrevented || !isMiddleMouseIntent(event)) return;
-                  if (hasRecentMiddleClick(event.currentTarget)) return;
-                  markRecentMiddleClick(event.currentTarget);
-                  event.preventDefault();
-                  onRowClick?.(row, event);
-                }}
-              >
+            const rowHref = getRowHref?.(row);
+            const rowIsInteractive = Boolean(onRowClick || rowHref);
+            const cardClassName = cx(
+              'rounded-md border border-border bg-background p-3',
+              rowIsInteractive && 'cursor-pointer hover:bg-muted/30',
+              rowClassName?.(row),
+            );
+            const cardContent = (
+              <>
                 {enableRowSelection || renderExpandedRow ? (
                   <div className="mb-2 flex items-center justify-end gap-2">
                     {enableRowSelection ? (
@@ -1213,6 +1211,57 @@ export function DataTable<T extends Record<string, unknown>>({
                     {renderExpandedRow(row)}
                   </div>
                 ) : null}
+              </>
+            );
+
+            const handleCardClick = (event: MouseEvent<HTMLElement>) => {
+              logRowMouseEvent('cards', 'click', rowKey, event);
+              if (hasRecentMiddleClick(event.currentTarget)) {
+                event.preventDefault();
+                return;
+              }
+              handleRowInteraction(row, event);
+            };
+
+            const handleCardMiddleIntent = (event: MouseEvent<HTMLElement>) => {
+              logRowMouseEvent(
+                'cards',
+                event.type === 'mousedown' ? 'mousedown' : 'auxclick',
+                rowKey,
+                event,
+              );
+              if (rowHref) return;
+              if (event.defaultPrevented || !isMiddleMouseIntent(event)) return;
+              if (hasRecentMiddleClick(event.currentTarget)) return;
+              markRecentMiddleClick(event.currentTarget);
+              event.preventDefault();
+              onRowClick?.(row, event);
+            };
+
+            if (rowHref && !enableRowSelection && !renderExpandedRow) {
+              return (
+                <a
+                  key={rowKey}
+                  href={rowHref}
+                  className={cx(cardClassName, 'block text-inherit no-underline')}
+                  style={rowAccentStyle(row)}
+                  onClick={handleCardClick}
+                >
+                  {cardContent}
+                </a>
+              );
+            }
+
+            return (
+              <div
+                key={rowKey}
+                className={cardClassName}
+                style={rowAccentStyle(row)}
+                onClick={rowIsInteractive ? handleCardClick : undefined}
+                onMouseDown={rowIsInteractive ? handleCardMiddleIntent : undefined}
+                onAuxClick={rowIsInteractive ? handleCardMiddleIntent : undefined}
+              >
+                {cardContent}
               </div>
             );
           })}
@@ -1333,6 +1382,8 @@ export function DataTable<T extends Record<string, unknown>>({
                     : ({
                         boxShadow: `inset 4px 0 0 ${rowAccent}`,
                       } as CSSProperties);
+                const rowHref = getRowHref?.(row);
+                const rowIsInteractive = Boolean(onRowClick || rowHref);
 
                 return (
                   <Fragment key={rowKey}>
@@ -1340,35 +1391,49 @@ export function DataTable<T extends Record<string, unknown>>({
                       className={cx(
                         ROW_HEIGHTS[density],
                         'border-0 transition-colors duration-150 hover:bg-muted/50',
-                        onRowClick && 'cursor-pointer',
+                        rowIsInteractive && 'cursor-pointer',
                         rowClassName?.(row),
                       )}
-                      onClick={(event) => {
-                        logRowMouseEvent('table', 'click', rowKey, event);
-                        if (hasRecentMiddleClick(event.currentTarget)) {
-                          event.preventDefault();
-                          return;
-                        }
-                        onRowClick?.(row, event);
-                      }}
-                      onMouseDown={(event) => {
-                        logRowMouseEvent('table', 'mousedown', rowKey, event);
-                        if (event.defaultPrevented || !isMiddleMouseIntent(event))
-                          return;
-                        if (hasRecentMiddleClick(event.currentTarget)) return;
-                        markRecentMiddleClick(event.currentTarget);
-                        event.preventDefault();
-                        onRowClick?.(row, event);
-                      }}
-                      onAuxClick={(event) => {
-                        logRowMouseEvent('table', 'auxclick', rowKey, event);
-                        if (event.defaultPrevented || !isMiddleMouseIntent(event))
-                          return;
-                        if (hasRecentMiddleClick(event.currentTarget)) return;
-                        markRecentMiddleClick(event.currentTarget);
-                        event.preventDefault();
-                        onRowClick?.(row, event);
-                      }}
+                      onClick={
+                        rowHref
+                          ? undefined
+                          : rowIsInteractive
+                            ? (event) => {
+                                logRowMouseEvent('table', 'click', rowKey, event);
+                                if (hasRecentMiddleClick(event.currentTarget)) {
+                                  event.preventDefault();
+                                  return;
+                                }
+                                handleRowInteraction(row, event);
+                              }
+                            : undefined
+                      }
+                      onMouseDown={
+                        rowHref || !rowIsInteractive
+                          ? undefined
+                          : (event) => {
+                              logRowMouseEvent('table', 'mousedown', rowKey, event);
+                              if (event.defaultPrevented || !isMiddleMouseIntent(event))
+                                return;
+                              if (hasRecentMiddleClick(event.currentTarget)) return;
+                              markRecentMiddleClick(event.currentTarget);
+                              event.preventDefault();
+                              onRowClick?.(row, event);
+                            }
+                      }
+                      onAuxClick={
+                        rowHref || !rowIsInteractive
+                          ? undefined
+                          : (event) => {
+                              logRowMouseEvent('table', 'auxclick', rowKey, event);
+                              if (event.defaultPrevented || !isMiddleMouseIntent(event))
+                                return;
+                              if (hasRecentMiddleClick(event.currentTarget)) return;
+                              markRecentMiddleClick(event.currentTarget);
+                              event.preventDefault();
+                              onRowClick?.(row, event);
+                            }
+                      }
                     >
                       {useSelectionColumn ? (
                         <td
@@ -1457,13 +1522,37 @@ export function DataTable<T extends Record<string, unknown>>({
                                   </button>
                                 ) : null}
                                 <span className="block min-w-0 flex-1 truncate">
-                                  {renderCellValue(row, column)}
+                                  {rowHref ? (
+                                    <a
+                                      href={rowHref}
+                                      onClick={(event) =>
+                                        handleRowInteraction(row, event)
+                                      }
+                                      className="block truncate text-inherit no-underline hover:underline underline-offset-2"
+                                    >
+                                      {renderCellValue(row, column)}
+                                    </a>
+                                  ) : (
+                                    renderCellValue(row, column)
+                                  )}
                                 </span>
                               </div>
                             ) : (
-                              <span className="block truncate">
-                                {renderCellValue(row, column)}
-                              </span>
+                              rowHref ? (
+                                <a
+                                  href={rowHref}
+                                  onClick={(event) =>
+                                    handleRowInteraction(row, event)
+                                  }
+                                  className="block truncate text-inherit no-underline hover:underline underline-offset-2"
+                                >
+                                  {renderCellValue(row, column)}
+                                </a>
+                              ) : (
+                                <span className="block truncate">
+                                  {renderCellValue(row, column)}
+                                </span>
+                              )
                             )}
                           </td>
                         );

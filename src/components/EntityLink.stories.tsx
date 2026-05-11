@@ -15,3 +15,11 @@ export default meta;
 type Story = StoryObj<typeof EntityLink>;
 
 export const Default: Story = {};
+
+export const WithHref: Story = {
+  args: {
+    href: "/entities/abc",
+    onActivate: undefined,
+    children: "Open related record (link mode)",
+  },
+};

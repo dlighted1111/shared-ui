@@ -7,6 +7,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type MouseEvent as ReactMouseEvent,
   type ReactNode,
 } from "react";
 import { cx } from "../lib/cx";
@@ -102,6 +103,16 @@ function matchesPath(targetPath: string, pathname: string, exactMatch?: boolean)
   if (normalizedPathname === normalizedTarget) return true;
   if (normalizedTarget === "/") return normalizedPathname === "/";
   return normalizedPathname.startsWith(`${normalizedTarget}/`);
+}
+
+function isModifiedPointerClick(event: ReactMouseEvent<HTMLElement>): boolean {
+  return Boolean(
+    event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey ||
+      event.button === 1,
+  );
 }
 
 function isItemActive(item: AppSidebarItem, pathname: string): boolean {
@@ -301,7 +312,25 @@ export function AppSidebarShell({
     (item: AppSidebarItem) => {
       if (item.disabled) return;
       item.onSelect?.();
-      if (item.href && onNavigate) {
+      setUserMenuOpen(false);
+    },
+    [],
+  );
+
+  const handleItemLinkClick = useCallback(
+    (event: ReactMouseEvent<HTMLAnchorElement>, item: AppSidebarItem) => {
+      if (item.disabled) {
+        event.preventDefault();
+        return;
+      }
+      item.onSelect?.();
+      if (event.defaultPrevented) return;
+      if (isModifiedPointerClick(event)) {
+        setUserMenuOpen(false);
+        return;
+      }
+      if (onNavigate) {
+        event.preventDefault();
         onNavigate(item);
       }
       setUserMenuOpen(false);
@@ -422,26 +451,22 @@ export function AppSidebarShell({
                             ? "bg-muted text-muted-foreground"
                             : "bg-primary/10 text-primary";
 
-                      const content = (
-                        <button
-                          type="button"
-                          disabled={item.disabled}
-                          onClick={() => handleItemSelect(item)}
-                          className={cx(
-                            "flex w-full items-center rounded-md text-sm transition-colors duration-150",
-                            collapsed
-                              ? "justify-center px-0 py-2"
-                              : "gap-2.5 px-2 py-1.5",
-                            active
-                              ? "bg-accent text-accent-foreground font-medium"
-                              : "text-foreground/80 hover:bg-accent/60",
-                            item.disabled && "cursor-not-allowed opacity-60",
-                            active && activeItemClassName,
-                            !active && inactiveItemClassName,
-                            itemClassName,
-                          )}
-                          title={collapsed ? item.tooltip ?? item.label : undefined}
-                        >
+                      const itemClassNames = cx(
+                        "flex w-full items-center rounded-md text-sm transition-colors duration-150",
+                        collapsed
+                          ? "justify-center px-0 py-2"
+                          : "gap-2.5 px-2 py-1.5",
+                        active
+                          ? "bg-accent text-accent-foreground font-medium"
+                          : "text-foreground/80 hover:bg-accent/60",
+                        item.disabled && "cursor-not-allowed opacity-60",
+                        active && activeItemClassName,
+                        !active && inactiveItemClassName,
+                        itemClassName,
+                      );
+
+                      const itemInnerContent = (
+                        <>
                           <span className="relative inline-flex shrink-0">
                             {renderIcon(item.icon, collapsed)}
                             {collapsed && badgeVisible ? (
@@ -463,6 +488,29 @@ export function AppSidebarShell({
                               ) : null}
                             </>
                           ) : null}
+                        </>
+                      );
+
+                      const content = item.href ? (
+                        <a
+                          href={item.href}
+                          aria-disabled={item.disabled ? true : undefined}
+                          tabIndex={item.disabled ? -1 : undefined}
+                          onClick={(event) => handleItemLinkClick(event, item)}
+                          className={itemClassNames}
+                          title={collapsed ? item.tooltip ?? item.label : undefined}
+                        >
+                          {itemInnerContent}
+                        </a>
+                      ) : (
+                        <button
+                          type="button"
+                          disabled={item.disabled}
+                          onClick={() => handleItemSelect(item)}
+                          className={itemClassNames}
+                          title={collapsed ? item.tooltip ?? item.label : undefined}
+                        >
+                          {itemInnerContent}
                         </button>
                       );
 

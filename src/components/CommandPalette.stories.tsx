@@ -8,7 +8,7 @@ const meta: Meta<typeof CommandPalette> = {
   args: {
     pages: [
       { id: "home", label: "Home", path: "/" },
-      { id: "settings", label: "Settings", path: "/settings" },
+      { id: "settings", label: "Settings", path: "/settings", href: "/settings" },
     ],
     searchRecords: async () => [],
     onSelect: () => {},
@@ -22,7 +22,8 @@ export const Default: Story = {
   parameters: {
     docs: {
       description: {
-        story: "Use ⌘K (Ctrl+K) to open the command palette in the preview.",
+        story:
+          "Use ⌘K (Ctrl+K) to open the command palette in the preview. Press Enter to open in-place, or Cmd/Ctrl+Enter to open in a new tab when href/path is available.",
       },
     },
   },

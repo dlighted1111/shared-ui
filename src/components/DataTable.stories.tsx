@@ -409,3 +409,17 @@ export const MobileCards: Story = {
     </div>
   ),
 };
+
+export const RowLinks: Story = {
+  render: () => (
+    <DataTable<Row>
+      columns={columns}
+      data={data}
+      getRowKey={(row) => row.id}
+      getRowHref={(row) => `/users/${row.id}`}
+      onRowClick={() => {
+        // Story-only noop to demonstrate plain-click override + modifier native behavior.
+      }}
+    />
+  ),
+};

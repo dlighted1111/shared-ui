@@ -15,3 +15,11 @@ export default meta;
 type Story = StoryObj<typeof ActionLinkButton>;
 
 export const Default: Story = {};
+
+export const WithHref: Story = {
+  args: {
+    href: "/records/123",
+    onActivate: undefined,
+    children: "Open record (link mode)",
+  },
+};

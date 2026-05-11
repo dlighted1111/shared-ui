@@ -2,7 +2,8 @@ import type { ReactNode } from "react";
 import { ActionLinkButton } from "./ActionLinkButton";
 
 export interface EntityLinkProps {
-  onActivate: () => void;
+  onActivate?: () => void;
+  href?: string;
   children: ReactNode;
   className?: string;
   stopPropagation?: boolean;
@@ -10,6 +11,7 @@ export interface EntityLinkProps {
 
 export function EntityLink({
   onActivate,
+  href,
   children,
   className,
   stopPropagation = true,
@@ -17,6 +19,7 @@ export function EntityLink({
   return (
     <ActionLinkButton
       onActivate={onActivate}
+      href={href}
       className={className}
       stopPropagation={stopPropagation}
     >

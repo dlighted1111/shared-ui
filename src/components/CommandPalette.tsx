@@ -5,6 +5,7 @@ import {
   useRef,
   useState,
   type KeyboardEvent as ReactKeyboardEvent,
+  type MouseEvent as ReactMouseEvent,
   type ReactNode,
 } from "react";
 import { cx } from "../lib/cx";
@@ -13,6 +14,7 @@ export interface CommandPaletteItem {
   id: string;
   label: string;
   path: string;
+  href?: string;
   icon?: ReactNode;
   sublabel?: string;
 }
@@ -46,6 +48,20 @@ function SearchIcon() {
       <circle cx="11" cy="11" r="8" />
       <path d="m21 21-4.3-4.3" />
     </svg>
+  );
+}
+
+function resolveItemHref(item: CommandPaletteItem): string {
+  return item.href ?? item.path;
+}
+
+function isModifiedPointerClick(event: ReactMouseEvent<HTMLElement>): boolean {
+  return Boolean(
+    event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey ||
+      event.button === 1,
   );
 }
 
@@ -144,6 +160,19 @@ export function CommandPalette({
     [onSelect]
   );
 
+  const handleResultClick = useCallback(
+    (event: ReactMouseEvent<HTMLElement>, item: CommandPaletteItem) => {
+      if (event.defaultPrevented) return;
+      if (isModifiedPointerClick(event)) {
+        setOpen(false);
+        return;
+      }
+      event.preventDefault();
+      handleSelect(item);
+    },
+    [handleSelect],
+  );
+
   const handleInputKeyDown = (event: ReactKeyboardEvent<HTMLInputElement>) => {
     if (event.key === "ArrowDown") {
       event.preventDefault();
@@ -156,7 +185,14 @@ export function CommandPalette({
       return;
     }
     if (event.key === "Enter" && allResults[selectedIdx]) {
-      handleSelect(allResults[selectedIdx]);
+      const selectedItem = allResults[selectedIdx];
+      const href = resolveItemHref(selectedItem);
+      if ((event.metaKey || event.ctrlKey) && href) {
+        window.open(href, "_blank", "noopener");
+        setOpen(false);
+        return;
+      }
+      handleSelect(selectedItem);
     }
   };
 
@@ -205,11 +241,12 @@ export function CommandPalette({
               {filteredPages.map((item) => {
                 globalIdx += 1;
                 const idx = globalIdx;
+                const href = resolveItemHref(item);
                 return (
-                  <button
+                  <a
                     key={item.id}
-                    type="button"
-                    onClick={() => handleSelect(item)}
+                    href={href}
+                    onClick={(event) => handleResultClick(event, item)}
                     onMouseEnter={() => setSelectedIdx(idx)}
                     className={cx(
                       "w-full flex items-center gap-3 h-10 px-4 text-sm text-left transition-colors",
@@ -226,7 +263,7 @@ export function CommandPalette({
                         {item.sublabel}
                       </span>
                     ) : null}
-                  </button>
+                  </a>
                 );
               })}
             </>
@@ -240,11 +277,12 @@ export function CommandPalette({
               {records.map((item) => {
                 globalIdx += 1;
                 const idx = globalIdx;
+                const href = resolveItemHref(item);
                 return (
-                  <button
+                  <a
                     key={item.id}
-                    type="button"
-                    onClick={() => handleSelect(item)}
+                    href={href}
+                    onClick={(event) => handleResultClick(event, item)}
                     onMouseEnter={() => setSelectedIdx(idx)}
                     className={cx(
                       "w-full flex items-center gap-3 h-10 px-4 text-sm text-left transition-colors",
@@ -261,7 +299,7 @@ export function CommandPalette({
                         {item.sublabel}
                       </span>
                     ) : null}
-                  </button>
+                  </a>
                 );
               })}
             </>
