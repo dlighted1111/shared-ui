@@ -35,6 +35,7 @@ export interface DataTableColumnDef<T extends Record<string, unknown>> {
   maxWidth?: number;
   frozen?: boolean;
   minWidth?: number;
+  disableRowHref?: boolean;
   render?: (row: T) => ReactNode;
   sortValue?: (row: T) => DataTableComparable;
   sortComparator?: (a: T, b: T) => number;
@@ -1462,6 +1463,8 @@ export function DataTable<T extends Record<string, unknown>>({
                         </td>
                       ) : null}
                       {resolvedColumns.map((column, colIndex) => {
+                        const cellHref =
+                          rowHref && !column.disableRowHref ? rowHref : undefined;
                         const showControls =
                           colIndex === 0 &&
                           (useInlineSelection || renderExpandedRow);
@@ -1522,9 +1525,9 @@ export function DataTable<T extends Record<string, unknown>>({
                                   </button>
                                 ) : null}
                                 <span className="block min-w-0 flex-1 truncate">
-                                  {rowHref ? (
+                                  {cellHref ? (
                                     <a
-                                      href={rowHref}
+                                      href={cellHref}
                                       onClick={(event) =>
                                         handleRowInteraction(row, event)
                                       }
@@ -1538,9 +1541,9 @@ export function DataTable<T extends Record<string, unknown>>({
                                 </span>
                               </div>
                             ) : (
-                              rowHref ? (
+                              cellHref ? (
                                 <a
-                                  href={rowHref}
+                                  href={cellHref}
                                   onClick={(event) =>
                                     handleRowInteraction(row, event)
                                   }
