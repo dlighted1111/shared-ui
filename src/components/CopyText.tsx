@@ -8,6 +8,12 @@ export interface CopyTextProps {
   copiedDurationMs?: number;
 }
 
+const COPY_TEXT_ROOT_CLASS =
+  "inline-flex w-full min-w-0 max-w-full cursor-pointer items-center gap-1 group";
+const COPY_TEXT_VALUE_CLASS =
+  "block min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap";
+const COPY_TEXT_ICON_CLASS = "shrink-0 opacity-0 group-hover:opacity-100";
+
 function CopyIcon({ copied }: { copied: boolean }) {
   if (copied) {
     return (
@@ -66,11 +72,11 @@ export function CopyText({
   return (
     <span
       onClick={handleCopy}
-      className={cx("inline-flex cursor-pointer items-center gap-1 group", className)}
+      className={cx(COPY_TEXT_ROOT_CLASS, className)}
       title="Click to copy"
     >
-      <span>{display ?? value}</span>
-      <span className="opacity-0 group-hover:opacity-100">
+      <span className={COPY_TEXT_VALUE_CLASS}>{display ?? value}</span>
+      <span className={COPY_TEXT_ICON_CLASS}>
         <CopyIcon copied={copied} />
       </span>
     </span>

@@ -109,7 +109,7 @@ const CELL_FONT: Record<DataTableDensity, string> = {
 };
 
 const HEADER_HEIGHT: Record<DataTableDensity, string> = {
-  comfortable: 'h-10',
+  comfortable: 'h-12',
   compact: 'h-8',
 };
 
@@ -131,6 +131,7 @@ const CARD_SECONDARY_FONT: Record<DataTableDensity, string> = {
 const DEFAULT_FIXED_TABLE_BREAKPOINT = 1300;
 const SELECTION_COLUMN_WIDTH = 64;
 const DEFAULT_CELL_MAX_WIDTH = 320;
+const DEFAULT_REM_BASE_PX = 16;
 const DEFAULT_PAGE_SIZE = 25;
 const LARGE_DATASET_PAGE_THRESHOLD = 1000;
 const LARGE_DATASET_DEFAULT_PAGE_SIZE = 500;
@@ -275,6 +276,12 @@ function parsePixelWidth(value?: string): number | null {
   if (normalized.endsWith('px')) {
     const parsed = Number.parseFloat(normalized.slice(0, -2));
     return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  if (normalized.endsWith('rem')) {
+    const parsed = Number.parseFloat(normalized.slice(0, -3));
+    if (!Number.isFinite(parsed)) return null;
+    return parsed * DEFAULT_REM_BASE_PX;
   }
 
   const parsed = Number.parseFloat(normalized);
@@ -544,6 +551,9 @@ export function DataTable<T extends Record<string, unknown>>({
   const headerRowClass = isContrastHeader
     ? 'border-b-2 border-black'
     : 'border-b border-border';
+  const headerCellBorderClass = isContrastHeader
+    ? 'border-b-2 border-black'
+    : 'border-b border-border';
   const headerTextClass = isContrastHeader
     ? 'text-black'
     : 'text-muted-foreground';
@@ -551,6 +561,7 @@ export function DataTable<T extends Record<string, unknown>>({
   const frozenHeaderBorderClass = isContrastHeader
     ? 'border-r border-black'
     : 'border-r border-border';
+  const frozenBodyBorderClass = 'border-r border-border';
 
   useEffect(() => {
     if (mobileMode === 'cards') return;
@@ -673,18 +684,11 @@ export function DataTable<T extends Record<string, unknown>>({
     resolvedColumns.forEach((column, index) => {
       offsets.push(total);
       if (column.frozen) {
-        total += isMobileScrollableTable
-          ? fixedColumnWidths[index]
-          : columnMinWidths[index];
+        total += fixedColumnWidths[index];
       }
     });
     return offsets;
-  }, [
-    columnMinWidths,
-    fixedColumnWidths,
-    isMobileScrollableTable,
-    resolvedColumns,
-  ]);
+  }, [fixedColumnWidths, resolvedColumns]);
 
   const lastFrozenIndex = useMemo(() => {
     let last = -1;
@@ -836,7 +840,6 @@ export function DataTable<T extends Record<string, unknown>>({
       ? {
           position: 'sticky',
           left: frozenOffsets[index],
-          zIndex: 1,
         }
       : {}),
     minWidth: columnMinWidths[index],
@@ -857,7 +860,7 @@ export function DataTable<T extends Record<string, unknown>>({
       ? {
           position: 'sticky',
           left: frozenOffsets[index],
-          zIndex: 11,
+          zIndex: 2,
         }
       : {}),
     minWidth: columnMinWidths[index],
@@ -877,7 +880,7 @@ export function DataTable<T extends Record<string, unknown>>({
     resolvedColumns[index]?.frozen
       ? cx(
           'bg-background',
-          index === lastFrozenIndex && 'border-r border-border',
+          index === lastFrozenIndex && frozenBodyBorderClass,
         )
       : '';
 
@@ -1004,6 +1007,7 @@ export function DataTable<T extends Record<string, unknown>>({
                   className={cx(
                     HEADER_HEIGHT[density],
                     CELL_PADDING[density],
+                    headerCellBorderClass,
                     'w-10 text-center font-medium',
                     headerTextClass,
                     HEADER_FONT[density],
@@ -1319,6 +1323,7 @@ export function DataTable<T extends Record<string, unknown>>({
                     className={cx(
                       HEADER_HEIGHT[density],
                       CELL_PADDING[density],
+                      headerCellBorderClass,
                       isMobileScrollableTable
                         ? 'text-center font-medium whitespace-nowrap overflow-hidden text-ellipsis'
                         : 'text-left font-medium whitespace-nowrap overflow-hidden text-ellipsis',

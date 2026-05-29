@@ -440,7 +440,7 @@ export function ColumnOrderPicker({
               placeholder={searchPlaceholder}
               leading={<SearchIcon className="h-3.5 w-3.5 text-muted-foreground" />}
               containerClassName="w-full"
-              inputClassName="h-[34px] text-[13px]"
+              inputClassName="h-[34px] text-[13px] focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-transparent"
             />
           </div>
         </div>
